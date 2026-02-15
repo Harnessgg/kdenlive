@@ -303,6 +303,32 @@ def recalc_bounds(project: Path, output: Optional[Path] = None) -> None:
     )
 
 
+@app.command("autosave")
+def autosave(project: Path, interval_seconds: int = 60, enabled: bool = True) -> None:
+    _ensure_bridge_ready("autosave")
+    _ok(
+        "autosave",
+        _call_bridge(
+            "autosave",
+            "project.autosave",
+            {"project": str(project), "interval_seconds": interval_seconds, "enabled": enabled},
+        ),
+    )
+
+
+@app.command("pack-project")
+def pack_project(project: Path, output_dir: Path, media_dir_name: str = "media") -> None:
+    _ensure_bridge_ready("pack-project")
+    _ok(
+        "pack-project",
+        _call_bridge(
+            "pack-project",
+            "project.pack",
+            {"project": str(project), "output_dir": str(output_dir), "media_dir_name": media_dir_name},
+        ),
+    )
+
+
 @app.command("create-project")
 def create_project(
     output: Path,
@@ -557,6 +583,96 @@ def update_text(
     )
 
 
+@app.command("asset-metadata")
+def asset_metadata(project: Path, producer_id: str) -> None:
+    _ensure_bridge_ready("asset-metadata")
+    _ok(
+        "asset-metadata",
+        _call_bridge(
+            "asset-metadata",
+            "asset.metadata",
+            {"project": str(project), "producer_id": producer_id},
+        ),
+    )
+
+
+@app.command("replace-asset")
+def replace_asset(
+    project: Path,
+    producer_id: str,
+    media: Path,
+    update_name: bool = True,
+    output: Optional[Path] = None,
+) -> None:
+    _ensure_bridge_ready("replace-asset")
+    _ok(
+        "replace-asset",
+        _call_bridge(
+            "replace-asset",
+            "asset.replace",
+            {
+                "project": str(project),
+                "producer_id": producer_id,
+                "media": str(media),
+                "update_name": update_name,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("list-bin")
+def list_bin(project: Path) -> None:
+    _ensure_bridge_ready("list-bin")
+    _ok("list-bin", _call_bridge("list-bin", "bin.list", {"project": str(project)}))
+
+
+@app.command("create-bin-folder")
+def create_bin_folder(
+    project: Path,
+    name: str,
+    parent_id: int = -1,
+    output: Optional[Path] = None,
+) -> None:
+    _ensure_bridge_ready("create-bin-folder")
+    _ok(
+        "create-bin-folder",
+        _call_bridge(
+            "create-bin-folder",
+            "bin.create_folder",
+            {
+                "project": str(project),
+                "name": name,
+                "parent_id": parent_id,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("move-asset-to-folder")
+def move_asset_to_folder(
+    project: Path,
+    producer_id: str,
+    folder_id: int,
+    output: Optional[Path] = None,
+) -> None:
+    _ensure_bridge_ready("move-asset-to-folder")
+    _ok(
+        "move-asset-to-folder",
+        _call_bridge(
+            "move-asset-to-folder",
+            "bin.move_asset",
+            {
+                "project": str(project),
+                "producer_id": producer_id,
+                "folder_id": folder_id,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
 @app.command("set-effect-keyframes")
 def set_effect_keyframes(
     project: Path,
@@ -751,6 +867,60 @@ def stitch_clips(
     )
 
 
+@app.command("list-clips")
+def list_clips(
+    project: Path,
+    track_id: Optional[str] = None,
+    producer_id: Optional[str] = None,
+) -> None:
+    _ok(
+        "list-clips",
+        _call_bridge(
+            "list-clips",
+            "timeline.list_clips",
+            {"project": str(project), "track_id": track_id, "producer_id": producer_id},
+        ),
+    )
+
+
+@app.command("resolve-clip")
+def resolve_clip(
+    project: Path,
+    selector: str,
+    track_id: Optional[str] = None,
+    at_frame: Optional[int] = None,
+) -> None:
+    _ok(
+        "resolve-clip",
+        _call_bridge(
+            "resolve-clip",
+            "clip.resolve",
+            {"project": str(project), "selector": selector, "track_id": track_id, "at_frame": at_frame},
+        ),
+    )
+
+
+@app.command("select-zone")
+def select_zone(project: Path, zone_in: int = 0, zone_out: int = 0, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("select-zone")
+    _ok(
+        "select-zone",
+        _call_bridge(
+            "select-zone",
+            "timeline.select_zone",
+            {"project": str(project), "zone_in": zone_in, "zone_out": zone_out, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("detect-gaps")
+def detect_gaps(project: Path, track_id: Optional[str] = None) -> None:
+    _ok(
+        "detect-gaps",
+        _call_bridge("detect-gaps", "timeline.detect_gaps", {"project": str(project), "track_id": track_id}),
+    )
+
+
 @app.command("time-remap")
 def time_remap(
     project: Path,
@@ -770,6 +940,122 @@ def time_remap(
                 "speed": speed,
                 "output": str(output) if output else None,
             },
+        ),
+    )
+
+
+@app.command("nudge-clip")
+def nudge_clip(project: Path, clip_ref: str, delta_frames: int, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("nudge-clip")
+    _ok(
+        "nudge-clip",
+        _call_bridge(
+            "nudge-clip",
+            "timeline.nudge_clip",
+            {
+                "project": str(project),
+                "clip_ref": clip_ref,
+                "delta_frames": delta_frames,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("slip-clip")
+def slip_clip(project: Path, clip_ref: str, delta_frames: int, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("slip-clip")
+    _ok(
+        "slip-clip",
+        _call_bridge(
+            "slip-clip",
+            "timeline.slip_clip",
+            {
+                "project": str(project),
+                "clip_ref": clip_ref,
+                "delta_frames": delta_frames,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("slide-clip")
+def slide_clip(project: Path, clip_ref: str, delta_frames: int, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("slide-clip")
+    _ok(
+        "slide-clip",
+        _call_bridge(
+            "slide-clip",
+            "timeline.slide_clip",
+            {
+                "project": str(project),
+                "clip_ref": clip_ref,
+                "delta_frames": delta_frames,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("ripple-insert")
+def ripple_insert(
+    project: Path,
+    track_id: str,
+    position: int,
+    length: int = 1,
+    clip_id: Optional[str] = None,
+    in_point: str = "0",
+    out_point: Optional[str] = None,
+    output: Optional[Path] = None,
+) -> None:
+    _ensure_bridge_ready("ripple-insert")
+    _ok(
+        "ripple-insert",
+        _call_bridge(
+            "ripple-insert",
+            "timeline.ripple_insert",
+            {
+                "project": str(project),
+                "track_id": track_id,
+                "position": position,
+                "length": length,
+                "clip_id": clip_id,
+                "in_point": in_point,
+                "out_point": out_point,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("group-clips")
+def group_clips(project: Path, clip_refs: List[str], group_id: Optional[str] = None, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("group-clips")
+    _ok(
+        "group-clips",
+        _call_bridge(
+            "group-clips",
+            "timeline.group_clips",
+            {
+                "project": str(project),
+                "clip_refs": clip_refs,
+                "group_id": group_id,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("ungroup-clips")
+def ungroup_clips(project: Path, clip_refs: List[str], output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("ungroup-clips")
+    _ok(
+        "ungroup-clips",
+        _call_bridge(
+            "ungroup-clips",
+            "timeline.ungroup_clips",
+            {"project": str(project), "clip_refs": clip_refs, "output": str(output) if output else None},
         ),
     )
 
@@ -1143,6 +1429,92 @@ def reorder_track(
     )
 
 
+@app.command("resolve-track")
+def resolve_track(project: Path, selector: str) -> None:
+    _ok(
+        "resolve-track",
+        _call_bridge("resolve-track", "track.resolve", {"project": str(project), "selector": selector}),
+    )
+
+
+@app.command("track-mute")
+def track_mute(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-mute")
+    _ok(
+        "track-mute",
+        _call_bridge(
+            "track-mute",
+            "track.mute",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("track-unmute")
+def track_unmute(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-unmute")
+    _ok(
+        "track-unmute",
+        _call_bridge(
+            "track-unmute",
+            "track.unmute",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("track-lock")
+def track_lock(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-lock")
+    _ok(
+        "track-lock",
+        _call_bridge(
+            "track-lock",
+            "track.lock",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("track-unlock")
+def track_unlock(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-unlock")
+    _ok(
+        "track-unlock",
+        _call_bridge(
+            "track-unlock",
+            "track.unlock",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("track-show")
+def track_show(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-show")
+    _ok(
+        "track-show",
+        _call_bridge(
+            "track-show",
+            "track.show",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("track-hide")
+def track_hide(project: Path, track_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("track-hide")
+    _ok(
+        "track-hide",
+        _call_bridge(
+            "track-hide",
+            "track.hide",
+            {"project": str(project), "track_id": track_id, "output": str(output) if output else None},
+        ),
+    )
+
+
 @app.command("render-project")
 def render_project(
     project: Path,
@@ -1177,6 +1549,180 @@ def render_project(
 def render_status(job_id: str) -> None:
     _ensure_bridge_ready("render-status")
     _ok("render-status", _call_bridge("render-status", "render.status", {"job_id": job_id}))
+
+
+@app.command("render-latest")
+def render_latest(type: Optional[str] = None, status: Optional[str] = None) -> None:
+    _ok("render-latest", _call_bridge("render-latest", "render.latest", {"type": type, "status": status}))
+
+
+@app.command("render-retry")
+def render_retry(job_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("render-retry")
+    _ok(
+        "render-retry",
+        _call_bridge(
+            "render-retry",
+            "render.retry",
+            {"job_id": job_id, "output": str(output) if output else None},
+            timeout_seconds=600,
+        ),
+    )
+
+
+@app.command("render-cancel")
+def render_cancel(job_id: str) -> None:
+    _ensure_bridge_ready("render-cancel")
+    _ok("render-cancel", _call_bridge("render-cancel", "render.cancel", {"job_id": job_id}))
+
+
+@app.command("render-list-jobs")
+def render_list_jobs() -> None:
+    _ensure_bridge_ready("render-list-jobs")
+    _ok("render-list-jobs", _call_bridge("render-list-jobs", "render.list_jobs", {}))
+
+
+@app.command("render-wait")
+def render_wait(
+    job_id: str,
+    timeout_seconds: float = 120.0,
+    poll_interval_seconds: float = 0.2,
+) -> None:
+    _ensure_bridge_ready("render-wait")
+    _ok(
+        "render-wait",
+        _call_bridge(
+            "render-wait",
+            "render.wait",
+            {
+                "job_id": job_id,
+                "timeout_seconds": timeout_seconds,
+                "poll_interval_seconds": poll_interval_seconds,
+            },
+            timeout_seconds=max(30, timeout_seconds + 5),
+        ),
+    )
+
+
+@app.command("list-sequences")
+def list_sequences(project: Path) -> None:
+    _ensure_bridge_ready("list-sequences")
+    _ok("list-sequences", _call_bridge("list-sequences", "sequence.list", {"project": str(project)}))
+
+
+@app.command("copy-sequence")
+def copy_sequence(project: Path, source_id: str, new_id: Optional[str] = None, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("copy-sequence")
+    _ok(
+        "copy-sequence",
+        _call_bridge(
+            "copy-sequence",
+            "sequence.copy",
+            {"project": str(project), "source_id": source_id, "new_id": new_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("set-active-sequence")
+def set_active_sequence(project: Path, sequence_id: str, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("set-active-sequence")
+    _ok(
+        "set-active-sequence",
+        _call_bridge(
+            "set-active-sequence",
+            "sequence.set_active",
+            {"project": str(project), "sequence_id": sequence_id, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("export-edl")
+def export_edl(project: Path, output: Path) -> None:
+    _ensure_bridge_ready("export-edl")
+    _ok("export-edl", _call_bridge("export-edl", "export.edl", {"project": str(project), "output": str(output)}))
+
+
+@app.command("export-xml")
+def export_xml(project: Path, output: Path) -> None:
+    _ensure_bridge_ready("export-xml")
+    _ok("export-xml", _call_bridge("export-xml", "export.xml", {"project": str(project), "output": str(output)}))
+
+
+@app.command("export-otio")
+def export_otio(project: Path, output: Path) -> None:
+    _ensure_bridge_ready("export-otio")
+    _ok("export-otio", _call_bridge("export-otio", "export.otio", {"project": str(project), "output": str(output)}))
+
+
+@app.command("normalize-audio")
+def normalize_audio(project: Path, clip_ref: str, target_db: float = -14.0, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("normalize-audio")
+    _ok(
+        "normalize-audio",
+        _call_bridge(
+            "normalize-audio",
+            "audio.normalize",
+            {"project": str(project), "clip_ref": clip_ref, "target_db": target_db, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("remove-silence")
+def remove_silence(
+    project: Path,
+    clip_ref: str,
+    threshold_db: float = -35.0,
+    min_duration_frames: int = 6,
+    output: Optional[Path] = None,
+) -> None:
+    _ensure_bridge_ready("remove-silence")
+    _ok(
+        "remove-silence",
+        _call_bridge(
+            "remove-silence",
+            "audio.remove_silence",
+            {
+                "project": str(project),
+                "clip_ref": clip_ref,
+                "threshold_db": threshold_db,
+                "min_duration_frames": min_duration_frames,
+                "output": str(output) if output else None,
+            },
+        ),
+    )
+
+
+@app.command("audio-pan")
+def audio_pan(project: Path, clip_ref: str, pan: float, output: Optional[Path] = None) -> None:
+    _ensure_bridge_ready("audio-pan")
+    _ok(
+        "audio-pan",
+        _call_bridge(
+            "audio-pan",
+            "audio.pan",
+            {"project": str(project), "clip_ref": clip_ref, "pan": pan, "output": str(output) if output else None},
+        ),
+    )
+
+
+@app.command("batch")
+def batch(
+    steps_json: str,
+    stop_on_error: bool = True,
+) -> None:
+    _ensure_bridge_ready("batch")
+    try:
+        steps = json.loads(steps_json)
+    except json.JSONDecodeError as exc:
+        _fail("batch", "INVALID_INPUT", f"Invalid JSON: {exc}")
+    _ok(
+        "batch",
+        _call_bridge(
+            "batch",
+            "batch.execute",
+            {"steps": steps, "stop_on_error": stop_on_error},
+        ),
+    )
 
 
 def main() -> None:
